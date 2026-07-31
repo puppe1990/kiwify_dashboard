@@ -22,6 +22,15 @@ module.exports = {
   ],
   theme: {
     extend: {
+      colors: {
+        kiwi: {
+          sidebar: "#14532d",
+          active: "#166534",
+          accent: "#22c55e",
+          mint: "#f0fdf4",
+          border: "#bbf7d0",
+        },
+      },
       fontFamily: {
         sans: ["ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
         display: ["ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],

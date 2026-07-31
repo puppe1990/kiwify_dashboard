@@ -1,5 +1,7 @@
 <script>
   import { useForm } from '@inertiajs/svelte'
+  import AppLayout from '../components/AppLayout.svelte'
+
   export let errors = {}
   export let site = {}
   export let flash = {}
@@ -13,19 +15,12 @@
   <title>Configuração inicial · {site.appName || 'Kiwify Ops'}</title>
 </svelte:head>
 
-<div class="min-h-screen bg-green-50 flex items-center justify-center p-6">
-  <div class="w-full max-w-md bg-white border border-green-200 rounded-xl shadow-sm p-6">
+<AppLayout {site} {flash}>
+  <div class="mx-auto max-w-md rounded-xl border border-[#bbf7d0] bg-white p-6 shadow-sm">
     <h1 class="text-2xl font-semibold text-green-900 mb-1">Configuração Kiwify</h1>
     <p class="text-sm text-green-800/80 mb-6">
       Informe as credenciais da API Pública da Kiwify para começar.
     </p>
-
-    {#if flash.success}
-      <p class="mb-4 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">{flash.success}</p>
-    {/if}
-    {#if flash.warning}
-      <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">{flash.warning}</p>
-    {/if}
 
     <form on:submit|preventDefault={submit} class="space-y-4">
       <div>
@@ -66,11 +61,11 @@
 
       <button
         type="submit"
-        class="w-full rounded-lg bg-green-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-900 disabled:opacity-60"
+        class="w-full rounded-lg bg-[#166534] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#14532d] disabled:opacity-60"
         disabled={form.processing}
       >
         {form.processing ? 'Salvando…' : 'Salvar e continuar'}
       </button>
     </form>
   </div>
-</div>
+</AppLayout>
