@@ -15,6 +15,7 @@ func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	auth := handlers.NewAuthHandler(deps.Renderer, deps.Store, deps.Site, deps.Store.Sessions(), cfg, deps.Catalog, deps.Inertia)
 	setup := handlers.NewSetupHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia)
 	settings := handlers.NewSettingsHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia)
+	sales := handlers.NewSalesHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia, nil)
 
 	loginLimit := middleware.NewRateLimiter(10, cfg)
 	resetLimit := middleware.NewRateLimiter(10, cfg)
@@ -38,4 +39,7 @@ func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	r.Get("/settings", middleware.RequireAuthFunc("/login", settings.Get))
 	r.Post("/settings", middleware.RequireAuthFunc("/login", settings.Post))
 	r.Get("/dashboard", middleware.RequireAuthFunc("/login", dashboard.ServeHTTP))
+	r.Get("/sales", middleware.RequireAuthFunc("/login", sales.List))
+	r.Get("/sales/{id}", middleware.RequireAuthFunc("/login", cais.StringParam("id", sales.Show)))
+	r.Post("/sales/{id}/refund", middleware.RequireAuthFunc("/login", cais.StringParam("id", sales.Refund)))
 }

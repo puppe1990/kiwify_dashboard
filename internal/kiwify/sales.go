@@ -106,3 +106,17 @@ func (c *Client) GetSale(ctx context.Context, id string) (Sale, error) {
 	}
 	return out, nil
 }
+
+// RefundSale requests a refund for the sale. When pixKey is non-empty, it is
+// sent as JSON body {"pixKey":"..."}; otherwise the request has no body.
+func (c *Client) RefundSale(ctx context.Context, id string, pixKey string) error {
+	if id == "" {
+		return fmt.Errorf("kiwify: sale id is required")
+	}
+	path := "/sales/" + url.PathEscape(id) + "/refund"
+	var body any
+	if pixKey != "" {
+		body = map[string]string{"pixKey": pixKey}
+	}
+	return c.PostJSON(ctx, path, nil, body, nil)
+}

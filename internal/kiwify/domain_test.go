@@ -104,6 +104,43 @@ func TestGetSale(t *testing.T) {
 	}
 }
 
+func TestRefundSale_WithPixKey(t *testing.T) {
+	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("method = %s", r.Method)
+		}
+		if r.URL.Path != "/v1/sales/sale-1/refund" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		var body map[string]string
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatalf("decode body: %v", err)
+		}
+		if body["pixKey"] != "email@ex.com" {
+			t.Fatalf("body = %v", body)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"refunded": true})
+	})
+	if err := c.RefundSale(context.Background(), "sale-1", "email@ex.com"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestRefundSale_WithoutPixKey(t *testing.T) {
+	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/sales/sale-2/refund" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		if ct := r.Header.Get("Content-Type"); ct != "" {
+			t.Errorf("expected no Content-Type without body, got %q", ct)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"refunded": true})
+	})
+	if err := c.RefundSale(context.Background(), "sale-2", ""); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestSalesStats_QueryAndDecode(t *testing.T) {
 	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/v1/stats" {
