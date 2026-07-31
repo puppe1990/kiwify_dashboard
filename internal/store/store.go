@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	_ "modernc.org/sqlite"
 
@@ -28,6 +29,18 @@ type Store interface {
 	CreatePasswordResetToken(userID int64) (string, error)
 	FindPasswordResetUserID(token string) (int64, bool)
 	ResetPasswordWithToken(token, passwordHash string) error
+
+	GetKiwifySettings() (KiwifySettings, error)
+	SaveKiwifySettings(KiwifySettings) error
+	UpdateOAuthToken(ciphertext string, expiresAt time.Time) error
+	Configured() (bool, error)
+
+	InsertAuditLog(AuditLog) (int64, error)
+	ListAuditLogs(limit, offset int) ([]AuditLog, error)
+
+	InsertWebhookEvent(WebhookEvent) (int64, error)
+	ListWebhookEvents(limit, offset int) ([]WebhookEvent, error)
+
 	Sessions() session.Store
 	Ping() error
 	Close() error
