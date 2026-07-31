@@ -6,9 +6,10 @@ import (
 
 	"github.com/puppe1990/cais/pkg/cais"
 	"github.com/puppe1990/cais/pkg/cais/flash"
+	inertia "github.com/romsar/gonertia/v3"
+
 	"github.com/puppe1990/kiwify_dashboard/internal/kiwify"
 	"github.com/puppe1990/kiwify_dashboard/internal/store"
-	inertia "github.com/romsar/gonertia/v3"
 )
 
 // flashProps returns an Inertia flash map from the cais flash cookie/context, if any.

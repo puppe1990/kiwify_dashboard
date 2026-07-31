@@ -5,6 +5,7 @@ import (
 
 	"github.com/puppe1990/cais/pkg/cais"
 	"github.com/puppe1990/cais/pkg/cais/console"
+
 	"github.com/puppe1990/kiwify_dashboard/internal/store"
 )
 
@@ -25,10 +26,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer func() { _ = s.Close() }()
 
 	active := s
-	if err := console.Run(console.Options{
+	runErr := console.Run(console.Options{
 		AppName:  "kiwify_dashboard",
 		Config:   cfg,
 		Bindings: bindings(active),
@@ -41,7 +41,10 @@ func main() {
 			active = next
 			return bindings(active), nil
 		},
-	}); err != nil {
-		log.Fatal(err)
+	})
+	// Close after Run so we do not log.Fatal under an active defer (gocritic exitAfterDefer).
+	_ = active.Close()
+	if runErr != nil {
+		log.Fatal(runErr)
 	}
 }

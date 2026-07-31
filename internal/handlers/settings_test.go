@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/puppe1990/cais/pkg/cais"
+
 	"github.com/puppe1990/kiwify_dashboard/internal/crypto"
 	"github.com/puppe1990/kiwify_dashboard/internal/store"
 )

@@ -575,11 +575,11 @@ func TestGetAccount_FlatObject(t *testing.T) {
 			t.Errorf("method = %s", r.Method)
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{
-			"id":            "acc-1",
-			"company_name":  "Kiwify Store",
-			"director_cpf":  "99999999999",
-			"company_cnpj":  "99999999999999",
-			"plan":          "pro",
+			"id":           "acc-1",
+			"company_name": "Kiwify Store",
+			"director_cpf": "99999999999",
+			"company_cnpj": "99999999999999",
+			"plan":         "pro",
 		})
 	})
 	acc, err := c.GetAccount(context.Background())

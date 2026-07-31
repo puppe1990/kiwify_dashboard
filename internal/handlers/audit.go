@@ -8,8 +8,9 @@ import (
 	"github.com/puppe1990/cais/pkg/cais"
 	"github.com/puppe1990/cais/pkg/cais/flash"
 	"github.com/puppe1990/cais/pkg/cais/meta"
-	"github.com/puppe1990/kiwify_dashboard/internal/store"
 	inertia "github.com/romsar/gonertia/v3"
+
+	"github.com/puppe1990/kiwify_dashboard/internal/store"
 )
 
 const auditPageSize = 50
@@ -38,8 +39,8 @@ func (h *AuditHandler) List(w http.ResponseWriter, r *http.Request) {
 	offset := (pageNum - 1) * auditPageSize
 
 	props := inertia.Props{
-		"site":  meta.ForRequest(h.site, r),
-		"logs":  []any{},
+		"site": meta.ForRequest(h.site, r),
+		"logs": []any{},
 		"pagination": map[string]any{
 			"page":      pageNum,
 			"page_size": auditPageSize,

@@ -14,9 +14,10 @@ import (
 	"github.com/puppe1990/cais/pkg/cais/meta"
 	"github.com/puppe1990/cais/pkg/cais/middleware"
 	"github.com/puppe1990/cais/pkg/cais/session"
+	inertia "github.com/romsar/gonertia/v3"
+
 	"github.com/puppe1990/kiwify_dashboard/internal/kiwify"
 	"github.com/puppe1990/kiwify_dashboard/internal/store"
-	inertia "github.com/romsar/gonertia/v3"
 )
 
 const affiliatesListPageSize = "50"

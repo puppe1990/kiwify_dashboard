@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/puppe1990/cais/pkg/cais"
+
 	"github.com/puppe1990/kiwify_dashboard/internal/crypto"
 	"github.com/puppe1990/kiwify_dashboard/internal/store"
 )
@@ -110,13 +111,11 @@ func TestSetup_Post_savesEncryptedCredentials(t *testing.T) {
 	}
 
 	// Flash cookie must be set so dashboard can show success/error feedback.
-	if c := rr.Result().Cookies(); len(c) == 0 {
-		// At least one Set-Cookie expected (cais_flash)
-	}
 	foundFlash := false
 	for _, c := range rr.Result().Cookies() {
 		if c.Name == "cais_flash" && c.Value != "" {
 			foundFlash = true
+			break
 		}
 	}
 	if !foundFlash {

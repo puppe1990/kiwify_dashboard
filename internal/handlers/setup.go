@@ -9,9 +9,10 @@ import (
 	"github.com/puppe1990/cais/pkg/cais"
 	"github.com/puppe1990/cais/pkg/cais/httpx"
 	"github.com/puppe1990/cais/pkg/cais/meta"
+	inertia "github.com/romsar/gonertia/v3"
+
 	"github.com/puppe1990/kiwify_dashboard/internal/crypto"
 	"github.com/puppe1990/kiwify_dashboard/internal/store"
-	inertia "github.com/romsar/gonertia/v3"
 )
 
 type SetupHandler struct {
