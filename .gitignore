@@ -1,0 +1,13 @@
+.firecrawl/
+.superpowers/
+*.env
+.env
+.env.*
+!.env.example
+node_modules/
+web/static/build/
+bin/
+tmp/
+*.db
+*.db-journal
+.DS_Store
