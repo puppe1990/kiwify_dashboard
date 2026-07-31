@@ -20,7 +20,7 @@ This is **not** multi-account/agency and **not** a product CMS (the API has no c
 | Layer | Behavior |
 | --- | --- |
 | App login | Local cais session (email/password). Required for all UI and mutations. |
-| Kiwify credentials | Configured in UI after first login (`/setup` / `/settings`): `client_secret` + `account_id`. |
+| Kiwify credentials | Configured in UI after first login (`/setup` / `/settings`): `client_id` + `client_secret` + `account_id` (OAuth `/oauth/token` requires client_id and client_secret). |
 | API calls | Server-side only. OAuth bearer token cached and reused until near expiry (~96h). |
 
 Flow: `login` → if settings missing → `/setup` → dashboard.
@@ -83,6 +83,7 @@ Beyond cais defaults (`users`, `sessions`):
 ### `kiwify_settings` (singleton row)
 
 - `account_id` (text)
+- `client_id` (text)
 - `client_secret_ciphertext` (blob/text)
 - `oauth_access_token_ciphertext` (nullable)
 - `token_expires_at` (nullable datetime)
@@ -111,8 +112,8 @@ Retention: keep last N or all in MVP (simple list + pagination); pruning can wai
 
 Responsibilities:
 
-1. **Token management:** `GetToken(ctx)` returns valid bearer; if missing/expired, `POST /oauth/token` with `client_secret`, persist new token + expiry.
-2. **Request helper:** base URL `https://public-api.kiwify.com`, headers:
+1. **Token management:** `GetToken(ctx)` returns valid bearer; if missing/expired, `POST /v1/oauth/token` with form `client_id` + `client_secret`, persist new token + expiry (`expires_in` seconds).
+2. **Request helper:** base URL `https://public-api.kiwify.com/v1`, headers:
    - `Authorization: Bearer <token>`
    - `x-kiwify-account-id: <account_id>`
 3. **Domain methods** aligned with docs:
