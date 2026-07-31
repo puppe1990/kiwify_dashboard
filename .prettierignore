@@ -1,0 +1,10 @@
+node_modules/
+bin/
+tmp/
+data/
+web/templates/
+web/src/
+web/static/build/
+web/static/css/styles.css
+package-lock.json
+go.sum
