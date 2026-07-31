@@ -21,6 +21,8 @@ func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	affiliates := handlers.NewAffiliatesHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia, nil)
 	webhooks := handlers.NewWebhooksHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia, nil)
 	events := handlers.NewEventsHandler(deps.Store, deps.Site, cfg, deps.Inertia)
+	account := handlers.NewAccountHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia, nil)
+	audit := handlers.NewAuditHandler(deps.Store, deps.Site, cfg, deps.Inertia)
 	kiwifyWebhook := handlers.NewKiwifyWebhookHandler(deps.Store)
 
 	loginLimit := middleware.NewRateLimiter(10, cfg)
@@ -69,4 +71,6 @@ func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	r.Post("/webhooks/{id}", middleware.RequireAuthFunc("/login", cais.StringParam("id", webhooks.Update)))
 	r.Post("/webhooks/{id}/delete", middleware.RequireAuthFunc("/login", cais.StringParam("id", webhooks.Delete)))
 	r.Get("/events", middleware.RequireAuthFunc("/login", events.List))
+	r.Get("/account", middleware.RequireAuthFunc("/login", account.Get))
+	r.Get("/audit", middleware.RequireAuthFunc("/login", audit.List))
 }

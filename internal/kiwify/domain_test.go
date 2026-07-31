@@ -565,3 +565,55 @@ func TestDeleteWebhook(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestGetAccount_FlatObject(t *testing.T) {
+	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/account" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		if r.Method != http.MethodGet {
+			t.Errorf("method = %s", r.Method)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"id":    "acc-1",
+			"name":  "Kiwify Store",
+			"email": "owner@store.com",
+			"plan":  "pro",
+		})
+	})
+	acc, err := c.GetAccount(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if acc.ID != "acc-1" || acc.Name != "Kiwify Store" || acc.Email != "owner@store.com" {
+		t.Fatalf("account = %+v", acc)
+	}
+	if acc.Raw["plan"] != "pro" {
+		t.Fatalf("raw = %v", acc.Raw)
+	}
+}
+
+func TestGetAccount_WrappedData(t *testing.T) {
+	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"data": map[string]any{
+				"id":           "acc-2",
+				"company_name": "Wrapped Co",
+				"owner_email":  "a@b.com",
+			},
+		})
+	})
+	acc, err := c.GetAccount(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if acc.ID != "acc-2" {
+		t.Fatalf("id = %q", acc.ID)
+	}
+	if acc.Name != "Wrapped Co" {
+		t.Fatalf("name = %q", acc.Name)
+	}
+	if acc.Email != "a@b.com" {
+		t.Fatalf("email = %q", acc.Email)
+	}
+}
