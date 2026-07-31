@@ -11,7 +11,7 @@ import (
 func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	home := handlers.NewHomeHandler(deps.Renderer, deps.Site, deps.Catalog, cfg, deps.Inertia)
 	contact := handlers.NewContactHandler(deps.Renderer, deps.Store, deps.Site, deps.Catalog, cfg, deps.Inertia)
-	dashboard := handlers.NewDashboardHandler(deps.Renderer, deps.Store, deps.Site, cfg, deps.Inertia)
+	dashboard := handlers.NewDashboardHandler(deps.Renderer, deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia)
 	auth := handlers.NewAuthHandler(deps.Renderer, deps.Store, deps.Site, deps.Store.Sessions(), cfg, deps.Catalog, deps.Inertia)
 	setup := handlers.NewSetupHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia)
 	settings := handlers.NewSettingsHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia)
