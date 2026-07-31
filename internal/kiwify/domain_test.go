@@ -225,3 +225,78 @@ func TestListProducts(t *testing.T) {
 		t.Fatalf("products = %+v", page)
 	}
 }
+
+func TestListPayouts(t *testing.T) {
+	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/payouts" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		if r.Method != http.MethodGet {
+			t.Errorf("method = %s", r.Method)
+		}
+		if r.URL.Query().Get("page_size") != "20" {
+			t.Errorf("query = %v", r.URL.Query())
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"pagination": map[string]any{"count": 1, "page_number": 1, "page_size": 20},
+			"data": []map[string]any{
+				{"id": "po-1", "amount": 5000, "status": "paid", "created_at": "2024-01-01T00:00:00Z"},
+			},
+		})
+	})
+
+	page, err := c.ListPayouts(context.Background(), kiwify.PageQuery{PageSize: "20"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(page.Data) != 1 || page.Data[0].ID != "po-1" || page.Data[0].Amount != 5000 {
+		t.Fatalf("payouts = %+v", page)
+	}
+}
+
+func TestGetPayout(t *testing.T) {
+	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/payouts/po-99" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"id": "po-99", "amount": 1200, "status": "pending",
+		})
+	})
+	p, err := c.GetPayout(context.Background(), "po-99")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.ID != "po-99" || p.Amount != 1200 {
+		t.Fatalf("payout = %+v", p)
+	}
+}
+
+func TestCreatePayout(t *testing.T) {
+	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("method = %s", r.Method)
+		}
+		if r.URL.Path != "/v1/payouts/" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		var body map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		if body["amount"] != float64(5000) {
+			t.Fatalf("body = %v", body)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"id": "new-po"})
+	})
+	p, err := c.CreatePayout(context.Background(), 5000)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.ID != "new-po" {
+		t.Fatalf("payout = %+v", p)
+	}
+	if p.Amount != 5000 {
+		t.Fatalf("amount filled = %v", p.Amount)
+	}
+}
