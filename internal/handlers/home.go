@@ -8,11 +8,14 @@ import (
 	"github.com/puppe1990/cais/pkg/cais/flash"
 	"github.com/puppe1990/cais/pkg/cais/i18n"
 	"github.com/puppe1990/cais/pkg/cais/meta"
+	"github.com/puppe1990/cais/pkg/cais/session"
+	"github.com/puppe1990/kiwify_dashboard/internal/store"
 	inertia "github.com/romsar/gonertia/v3"
 )
 
 type HomeHandler struct {
 	renderer *cais.Renderer
+	store    store.Store
 	site     meta.Site
 	catalog  *i18n.Catalog
 	cfg      cais.Config
@@ -23,7 +26,30 @@ func NewHomeHandler(renderer *cais.Renderer, site meta.Site, catalog *i18n.Catal
 	return &HomeHandler{renderer: renderer, site: site, catalog: catalog, cfg: cfg, inertia: i}
 }
 
+// SetStore attaches the store for auth redirect decisions (configured → dashboard).
+// Optional for tests that only render the public home page.
+func (h *HomeHandler) SetStore(s store.Store) {
+	h.store = s
+}
+
+func NewHomeHandlerWithStore(renderer *cais.Renderer, s store.Store, site meta.Site, catalog *i18n.Catalog, cfg cais.Config, i *inertia.Inertia) *HomeHandler {
+	return &HomeHandler{renderer: renderer, store: s, site: site, catalog: catalog, cfg: cfg, inertia: i}
+}
+
 func (h *HomeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Authenticated users leave the public landing for ops pages.
+	if _, ok := session.UserID(r); ok {
+		target := "/dashboard"
+		if h.store != nil {
+			configured, err := h.store.Configured()
+			if err == nil && !configured {
+				target = "/setup"
+			}
+		}
+		h.inertia.Redirect(w, r, target, http.StatusSeeOther)
+		return
+	}
+
 	site := meta.ForRequest(h.site, r)
 	props := inertia.Props{
 		"title": h.catalog.T("home.title"),
