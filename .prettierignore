@@ -8,3 +8,5 @@ web/static/build/
 web/static/css/styles.css
 package-lock.json
 go.sum
+
+docs/superpowers/

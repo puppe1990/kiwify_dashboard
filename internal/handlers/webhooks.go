@@ -13,9 +13,10 @@ import (
 	"github.com/puppe1990/cais/pkg/cais/meta"
 	"github.com/puppe1990/cais/pkg/cais/middleware"
 	"github.com/puppe1990/cais/pkg/cais/session"
+	inertia "github.com/romsar/gonertia/v3"
+
 	"github.com/puppe1990/kiwify_dashboard/internal/kiwify"
 	"github.com/puppe1990/kiwify_dashboard/internal/store"
-	inertia "github.com/romsar/gonertia/v3"
 )
 
 const webhooksListPageSize = "50"
@@ -340,7 +341,7 @@ func (h *WebhooksHandler) Update(w http.ResponseWriter, r *http.Request, id stri
 	h.inertia.Redirect(w, r.WithContext(ctx), "/webhooks/"+id, http.StatusSeeOther)
 }
 
-// Delete handles POST /webhooks/{id}/delete. Audits webhooks.delete.
+// Delete handles DELETE /webhooks/{id}. Audits webhooks.delete.
 func (h *WebhooksHandler) Delete(w http.ResponseWriter, r *http.Request, id string) {
 	userID, _ := session.UserID(r)
 	ip := middleware.ClientIP(r, h.cfg)

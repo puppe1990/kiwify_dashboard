@@ -116,16 +116,12 @@
   function confirmDelete() {
     if (!isEdit || submitting) return
     submitting = true
-    router.post(
-      `/webhooks/${webhook.id}/delete`,
-      {},
-      {
-        onFinish: () => {
-          submitting = false
-          confirmDeleteOpen = false
-        },
+    router.delete(`/webhooks/${webhook.id}`, {
+      onFinish: () => {
+        submitting = false
+        confirmDeleteOpen = false
       },
-    )
+    })
   }
 
   $: errorMessages = Object.values(errors || {}).filter(Boolean)

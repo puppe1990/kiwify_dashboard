@@ -17,14 +17,17 @@
 
 <AppLayout {site} {flash}>
   <div class="mx-auto max-w-md rounded-xl border border-[#bbf7d0] bg-white p-6 shadow-sm">
-    <h1 class="text-2xl font-semibold text-green-900 mb-1">Configuração Kiwify</h1>
-    <p class="text-sm text-green-800/80 mb-6">
+    <h1 class="mb-1 text-2xl font-semibold text-green-900">Configuração Kiwify</h1>
+    <p class="mb-2 text-sm text-green-800/80">
       Informe as credenciais da API Pública da Kiwify para começar.
+    </p>
+    <p class="mb-6 text-xs text-green-700/80">
+      Ao salvar, o app testa o OAuth na Kiwify e mostra se as keys foram aceitas.
     </p>
 
     <form on:submit|preventDefault={submit} class="space-y-4">
       <div>
-        <label for="account_id" class="block text-sm font-medium text-green-900 mb-1">Account ID</label>
+        <label for="account_id" class="mb-1 block text-sm font-medium text-green-900">Account ID</label>
         <input
           id="account_id"
           type="text"
@@ -36,7 +39,7 @@
       </div>
 
       <div>
-        <label for="client_id" class="block text-sm font-medium text-green-900 mb-1">Client ID</label>
+        <label for="client_id" class="mb-1 block text-sm font-medium text-green-900">Client ID</label>
         <input
           id="client_id"
           type="text"
@@ -48,7 +51,7 @@
       </div>
 
       <div>
-        <label for="client_secret" class="block text-sm font-medium text-green-900 mb-1">Client Secret</label>
+        <label for="client_secret" class="mb-1 block text-sm font-medium text-green-900">Client Secret</label>
         <input
           id="client_secret"
           type="password"
@@ -64,7 +67,7 @@
         class="w-full rounded-lg bg-[#166534] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#14532d] disabled:opacity-60"
         disabled={form.processing}
       >
-        {form.processing ? 'Salvando…' : 'Salvar e continuar'}
+        {form.processing ? 'Salvando e validando…' : 'Salvar e validar conexão'}
       </button>
     </form>
   </div>

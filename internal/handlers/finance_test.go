@@ -12,6 +12,7 @@ import (
 	"github.com/puppe1990/cais/pkg/cais"
 	"github.com/puppe1990/cais/pkg/cais/middleware"
 	"github.com/puppe1990/cais/pkg/cais/session"
+
 	"github.com/puppe1990/kiwify_dashboard/internal/kiwify"
 	"github.com/puppe1990/kiwify_dashboard/internal/store"
 )
@@ -21,11 +22,11 @@ type fakeFinanceAPI struct {
 	listFn     func(ctx context.Context, q kiwify.PageQuery) (kiwify.PayoutsPage, error)
 	createFn   func(ctx context.Context, amount float64) (kiwify.Payout, error)
 
-	lastQuery  kiwify.PageQuery
-	createAmt  float64
-	createN    int
-	balancesN  int
-	listN      int
+	lastQuery kiwify.PageQuery
+	createAmt float64
+	createN   int
+	balancesN int
+	listN     int
 }
 
 func (f *fakeFinanceAPI) ListBalances(ctx context.Context) (kiwify.Balances, error) {

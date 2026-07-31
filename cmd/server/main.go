@@ -9,11 +9,12 @@ import (
 	"github.com/puppe1990/cais/pkg/cais"
 	"github.com/puppe1990/cais/pkg/cais/boot"
 	"github.com/puppe1990/cais/pkg/cais/meta"
+	inertia "github.com/romsar/gonertia/v3"
+
 	"github.com/puppe1990/kiwify_dashboard/internal/app"
 	appi18n "github.com/puppe1990/kiwify_dashboard/internal/i18n"
 	"github.com/puppe1990/kiwify_dashboard/internal/store"
 	"github.com/puppe1990/kiwify_dashboard/web"
-	inertia "github.com/romsar/gonertia/v3"
 )
 
 func main() {
@@ -46,10 +47,6 @@ func main() {
 	if err := a.Run(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func bootstrap() (*app.App, error) {
-	return bootstrapWithConfig(cais.Load())
 }
 
 func bootstrapWithConfig(cfg cais.Config) (*app.App, error) {

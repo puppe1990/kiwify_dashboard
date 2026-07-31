@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -9,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/puppe1990/cais/pkg/cais"
+
 	"github.com/puppe1990/kiwify_dashboard/internal/crypto"
 	"github.com/puppe1990/kiwify_dashboard/internal/store"
 )
@@ -83,6 +85,32 @@ func TestSettings_Get_propsNeverIncludePlaintextSecret(t *testing.T) {
 	}
 }
 
+func stubOAuthOK(t *testing.T) {
+	t.Helper()
+	old := probeKiwifyOAuth
+	probeKiwifyOAuth = func(ctx context.Context, st store.Store, key []byte) error { return nil }
+	t.Cleanup(func() { probeKiwifyOAuth = old })
+}
+
+func TestSettings_Get_includesApiStatus(t *testing.T) {
+	s := setupTestStore(t)
+	seedSettings(t, s, "secret")
+	h := NewSettingsHandler(s, testAppSecret(), testSite(), cais.Config{AppURL: "https://cais.example.com"}, setupTestInertia(t))
+
+	req := inertiaRequest(http.MethodGet, "/settings", nil)
+	rr := httptest.NewRecorder()
+	h.Get(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d", rr.Code)
+	}
+	if v := assertInertiaProp(t, rr, "apiStatus"); v != "untested" {
+		t.Errorf("apiStatus = %v, want untested (no oauth token yet)", v)
+	}
+	if v := assertInertiaProp(t, rr, "apiStatusMessage"); v == nil || v == "" {
+		t.Error("apiStatusMessage should be set")
+	}
+}
+
 func TestSettings_Post_emptySecretKeepsPreviousCiphertext(t *testing.T) {
 	s := setupTestStore(t)
 	seeded := seedSettings(t, s, "original-secret")
@@ -90,6 +118,7 @@ func TestSettings_Post_emptySecretKeepsPreviousCiphertext(t *testing.T) {
 	prevToken := seeded.WebhookReceiveToken
 
 	h := NewSettingsHandler(s, testAppSecret(), testSite(), cais.Config{AppURL: "https://cais.example.com"}, setupTestInertia(t))
+	stubOAuthOK(t)
 
 	form := url.Values{
 		"client_id":     {"cid-new"},
@@ -129,6 +158,7 @@ func TestSettings_Post_updatesSecretWhenProvided(t *testing.T) {
 	prevCipher := seeded.ClientSecretCiphertext
 
 	h := NewSettingsHandler(s, testAppSecret(), testSite(), cais.Config{AppURL: "https://cais.example.com"}, setupTestInertia(t))
+	stubOAuthOK(t)
 
 	newSecret := "brand-new-secret"
 	form := url.Values{
@@ -161,6 +191,16 @@ func TestSettings_Post_updatesSecretWhenProvided(t *testing.T) {
 	}
 	if pt != newSecret {
 		t.Fatalf("decrypted = %q, want %q", pt, newSecret)
+	}
+
+	foundFlash := false
+	for _, c := range rr.Result().Cookies() {
+		if c.Name == "cais_flash" && c.Value != "" {
+			foundFlash = true
+		}
+	}
+	if !foundFlash {
+		t.Fatal("expected cais_flash cookie after settings save")
 	}
 }
 

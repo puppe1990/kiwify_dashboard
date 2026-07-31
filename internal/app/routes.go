@@ -5,6 +5,7 @@ import (
 
 	"github.com/puppe1990/cais/pkg/cais"
 	"github.com/puppe1990/cais/pkg/cais/middleware"
+
 	"github.com/puppe1990/kiwify_dashboard/internal/handlers"
 )
 
@@ -69,7 +70,9 @@ func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	r.Post("/webhooks", middleware.RequireAuthFunc("/login", webhooks.Create))
 	r.Get("/webhooks/{id}", middleware.RequireAuthFunc("/login", cais.StringParam("id", webhooks.Show)))
 	r.Post("/webhooks/{id}", middleware.RequireAuthFunc("/login", cais.StringParam("id", webhooks.Update)))
-	r.Post("/webhooks/{id}/delete", middleware.RequireAuthFunc("/login", cais.StringParam("id", webhooks.Delete)))
+	// DELETE (not POST …/delete): avoids conflict with POST /webhooks/kiwify/{token}
+	// under Go ServeMux overlapping wildcards.
+	r.Delete("/webhooks/{id}", middleware.RequireAuthFunc("/login", cais.StringParam("id", webhooks.Delete)))
 	r.Get("/events", middleware.RequireAuthFunc("/login", events.List))
 	r.Get("/account", middleware.RequireAuthFunc("/login", account.Get))
 	r.Get("/audit", middleware.RequireAuthFunc("/login", audit.List))

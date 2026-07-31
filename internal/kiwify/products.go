@@ -25,15 +25,15 @@ func (q PageQuery) queryMap() map[string]string {
 
 // Product is a Kiwify product summary from GET /products.
 type Product struct {
-	ID               string  `json:"id"`
-	Name             string  `json:"name"`
-	Type             string  `json:"type"`
-	Status           string  `json:"status"`
-	Currency         string  `json:"currency"`
+	ID               string   `json:"id"`
+	Name             string   `json:"name"`
+	Type             string   `json:"type"`
+	Status           string   `json:"status"`
+	Currency         string   `json:"currency"`
 	Price            *float64 `json:"price"`
-	AffiliateEnabled bool    `json:"affiliate_enabled"`
-	PaymentType      string  `json:"payment_type"`
-	CreatedAt        string  `json:"created_at"`
+	AffiliateEnabled bool     `json:"affiliate_enabled"`
+	PaymentType      string   `json:"payment_type"`
+	CreatedAt        string   `json:"created_at"`
 }
 
 // ProductsPage is the GET /products response.

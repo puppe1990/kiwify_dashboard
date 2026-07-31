@@ -9,10 +9,10 @@ import (
 	"github.com/puppe1990/cais/pkg/cais"
 	"github.com/puppe1990/cais/pkg/cais/httpx"
 	"github.com/puppe1990/cais/pkg/cais/meta"
-	"github.com/puppe1990/kiwify_dashboard/internal/crypto"
-	"github.com/puppe1990/kiwify_dashboard/internal/kiwify"
-	"github.com/puppe1990/kiwify_dashboard/internal/store"
 	inertia "github.com/romsar/gonertia/v3"
+
+	"github.com/puppe1990/kiwify_dashboard/internal/crypto"
+	"github.com/puppe1990/kiwify_dashboard/internal/store"
 )
 
 type SetupHandler struct {
@@ -28,9 +28,13 @@ func NewSetupHandler(s store.Store, appSecret []byte, site meta.Site, cfg cais.C
 }
 
 func (h *SetupHandler) Get(w http.ResponseWriter, r *http.Request) {
-	_ = h.inertia.Render(w, r, "Setup", inertia.Props{
+	props := inertia.Props{
 		"site": meta.ForRequest(h.site, r),
-	})
+	}
+	if f := flashProps(r); f != nil {
+		props["flash"] = f
+	}
+	_ = h.inertia.Render(w, r, "Setup", props)
 }
 
 func (h *SetupHandler) Post(w http.ResponseWriter, r *http.Request) {
@@ -77,16 +81,16 @@ func (h *SetupHandler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	flash := inertia.Flash{"success": "Credenciais Kiwify salvas com sucesso."}
-	// Optional OAuth smoke test — save already succeeded; warn only if token fails.
-	if client, err := kiwify.NewClientFromStore(h.store, h.appSecret, nil); err == nil {
-		ctx, cancel := context.WithTimeout(r.Context(), 8*time.Second)
-		defer cancel()
-		if _, err := client.GetToken(ctx); err != nil {
-			flash["warning"] = "Credenciais salvas, mas a autenticação OAuth com a Kiwify falhou. Verifique Client ID e Client Secret."
-		}
+	// Clear any stale OAuth token so the next call fetches a fresh one.
+	_ = h.store.UpdateOAuthToken("", time.Time{})
+
+	kind, message := "success", "Credenciais salvas e validadas com a API Kiwify."
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+	if err := probeKiwifyOAuth(ctx, h.store, h.appSecret); err != nil {
+		kind = "error"
+		message = "Credenciais salvas, mas a autenticação OAuth falhou: " + userFacingAPIError(err, "Client ID ou Client Secret inválidos.")
 	}
 
-	ctx := inertia.SetFlash(r.Context(), flash)
-	h.inertia.Redirect(w, r.WithContext(ctx), "/dashboard", http.StatusSeeOther)
+	redirectWithFlash(w, r, h.inertia, h.cfg, kind, message, "/dashboard")
 }

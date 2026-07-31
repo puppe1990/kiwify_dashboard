@@ -42,7 +42,7 @@ func (s *SQLiteStore) ListWebhookEvents(limit, offset int) ([]WebhookEvent, erro
 	if err != nil {
 		return nil, fmt.Errorf("list webhook events: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var events []WebhookEvent
 	for rows.Next() {

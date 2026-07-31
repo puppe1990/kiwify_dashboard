@@ -14,17 +14,18 @@ import (
 	"github.com/puppe1990/cais/pkg/cais/meta"
 	"github.com/puppe1990/cais/pkg/cais/middleware"
 	"github.com/puppe1990/cais/pkg/cais/session"
+	inertia "github.com/romsar/gonertia/v3"
+
 	"github.com/puppe1990/kiwify_dashboard/internal/kiwify"
 	"github.com/puppe1990/kiwify_dashboard/internal/store"
-	inertia "github.com/romsar/gonertia/v3"
 )
 
 const (
-	salesDateLayout     = "2006-01-02"
-	salesMaxRangeDays   = 90
-	salesDefaultDays    = 30
-	auditBodyMaxRunes   = 2048
-	salesListPageSize   = "50"
+	salesDateLayout   = "2006-01-02"
+	salesMaxRangeDays = 90
+	salesDefaultDays  = 30
+	auditBodyMaxRunes = 2048
+	salesListPageSize = "50"
 )
 
 // SalesAPI is the Kiwify sales surface used by SalesHandler (injectable for tests).
@@ -109,8 +110,8 @@ func (h *SalesHandler) List(w http.ResponseWriter, r *http.Request) {
 // Show handles GET /sales/{id}.
 func (h *SalesHandler) Show(w http.ResponseWriter, r *http.Request, id string) {
 	props := inertia.Props{
-		"site":  meta.ForRequest(h.site, r),
-		"sale":  nil,
+		"site":   meta.ForRequest(h.site, r),
+		"sale":   nil,
 		"errors": map[string]string{},
 	}
 	if msg, ok := flash.MessageFromRequest(r); ok {

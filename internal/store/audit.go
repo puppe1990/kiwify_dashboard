@@ -54,7 +54,7 @@ func (s *SQLiteStore) ListAuditLogs(limit, offset int) ([]AuditLog, error) {
 	if err != nil {
 		return nil, fmt.Errorf("list audit logs: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var logs []AuditLog
 	for rows.Next() {

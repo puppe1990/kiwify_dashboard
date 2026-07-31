@@ -16,16 +16,16 @@ type AffiliateProduct struct {
 // Commission is in minor units (centavos) as returned by the API.
 // Note: the API uses affiliate_id rather than id.
 type Affiliate struct {
-	AffiliateID  string           `json:"affiliate_id"`
-	Name         string           `json:"name"`
-	Email        string           `json:"email"`
-	CompanyName  string           `json:"company_name"`
-	DirectorCPF  string           `json:"director_cpf"`
-	CompanyCNPJ  string           `json:"company_cnpj"`
-	Product      AffiliateProduct `json:"product"`
-	Commission   float64          `json:"commission"`
-	Status       string           `json:"status"`
-	CreatedAt    string           `json:"created_at"`
+	AffiliateID string           `json:"affiliate_id"`
+	Name        string           `json:"name"`
+	Email       string           `json:"email"`
+	CompanyName string           `json:"company_name"`
+	DirectorCPF string           `json:"director_cpf"`
+	CompanyCNPJ string           `json:"company_cnpj"`
+	Product     AffiliateProduct `json:"product"`
+	Commission  float64          `json:"commission"`
+	Status      string           `json:"status"`
+	CreatedAt   string           `json:"created_at"`
 }
 
 // AffiliatesPage is the GET /affiliates response.

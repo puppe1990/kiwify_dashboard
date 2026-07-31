@@ -9,8 +9,9 @@ import (
 	"github.com/puppe1990/cais/pkg/cais/i18n"
 	"github.com/puppe1990/cais/pkg/cais/meta"
 	"github.com/puppe1990/cais/pkg/cais/session"
-	"github.com/puppe1990/kiwify_dashboard/internal/store"
 	inertia "github.com/romsar/gonertia/v3"
+
+	"github.com/puppe1990/kiwify_dashboard/internal/store"
 )
 
 type HomeHandler struct {

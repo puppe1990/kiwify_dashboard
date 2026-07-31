@@ -93,7 +93,7 @@ func (c *Client) refreshToken(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("kiwify: oauth request: %w", err)
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -202,7 +202,7 @@ func (c *Client) doOnce(ctx context.Context, method, path string, query map[stri
 	if err != nil {
 		return fmt.Errorf("kiwify: request: %w", err)
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	respBody, err := io.ReadAll(res.Body)
 	if err != nil {

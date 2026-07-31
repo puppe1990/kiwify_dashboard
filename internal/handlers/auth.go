@@ -13,8 +13,9 @@ import (
 	"github.com/puppe1990/cais/pkg/cais/passwordreset"
 	"github.com/puppe1990/cais/pkg/cais/session"
 	"github.com/puppe1990/cais/pkg/cais/validate"
-	"github.com/puppe1990/kiwify_dashboard/internal/store"
 	inertia "github.com/romsar/gonertia/v3"
+
+	"github.com/puppe1990/kiwify_dashboard/internal/store"
 )
 
 type AuthHandler struct {

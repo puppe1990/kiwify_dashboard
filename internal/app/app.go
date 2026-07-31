@@ -14,10 +14,11 @@ import (
 	"github.com/puppe1990/cais/pkg/cais/meta"
 	"github.com/puppe1990/cais/pkg/cais/middleware"
 	"github.com/puppe1990/cais/pkg/cais/netutil"
+	inertia "github.com/romsar/gonertia/v3"
+
 	"github.com/puppe1990/kiwify_dashboard/internal/crypto"
 	appmw "github.com/puppe1990/kiwify_dashboard/internal/middleware"
 	"github.com/puppe1990/kiwify_dashboard/internal/store"
-	inertia "github.com/romsar/gonertia/v3"
 )
 
 // DevAppSecretDefault is used only when ENV=development and APP_SECRET is unset.

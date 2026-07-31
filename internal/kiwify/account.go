@@ -5,21 +5,24 @@ import (
 	"encoding/json"
 )
 
-// Account is a flexible view of GET /account.
-// Known fields are decoded when present; Raw keeps the full API payload for UI display.
+// Account is a view of GET /account-details (Kiwify Public API).
+// Known fields match the official schema; Raw keeps the full payload for UI.
 type Account struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
+	ID          string `json:"id"`
+	Name        string `json:"name"` // filled from company_name when present
+	Email       string `json:"email"`
+	CompanyName string `json:"company_name"`
+	DirectorCPF string `json:"director_cpf"`
+	CompanyCNPJ string `json:"company_cnpj"`
 	// Raw is the full decoded JSON object (or wrapper data) for unknown fields.
 	Raw map[string]any `json:"-"`
 }
 
-// GetAccount fetches account details from GET /account.
+// GetAccount fetches account details from GET /account-details.
 // Response shapes vary; we accept a flat object or a { "data": {...} } wrapper.
 func (c *Client) GetAccount(ctx context.Context) (Account, error) {
 	var raw json.RawMessage
-	if err := c.GetJSON(ctx, "/account", nil, &raw); err != nil {
+	if err := c.GetJSON(ctx, "/account-details", nil, &raw); err != nil {
 		return Account{}, err
 	}
 	return decodeAccount(raw)
@@ -53,20 +56,37 @@ func decodeAccount(raw json.RawMessage) (Account, error) {
 	}
 	acc.Raw = m
 
-	// Fallback field names sometimes used by APIs.
+	// Fallback field names from the official AccountDetails schema.
 	if acc.ID == "" {
 		if v, ok := stringFromMap(m, "account_id", "accountId"); ok {
 			acc.ID = v
 		}
 	}
+	if acc.CompanyName == "" {
+		if v, ok := stringFromMap(m, "company_name", "companyName"); ok {
+			acc.CompanyName = v
+		}
+	}
 	if acc.Name == "" {
-		if v, ok := stringFromMap(m, "company_name", "companyName", "full_name", "fullName"); ok {
+		if acc.CompanyName != "" {
+			acc.Name = acc.CompanyName
+		} else if v, ok := stringFromMap(m, "full_name", "fullName"); ok {
 			acc.Name = v
 		}
 	}
 	if acc.Email == "" {
 		if v, ok := stringFromMap(m, "owner_email", "ownerEmail"); ok {
 			acc.Email = v
+		}
+	}
+	if acc.DirectorCPF == "" {
+		if v, ok := stringFromMap(m, "director_cpf", "directorCpf"); ok {
+			acc.DirectorCPF = v
+		}
+	}
+	if acc.CompanyCNPJ == "" {
+		if v, ok := stringFromMap(m, "company_cnpj", "companyCnpj"); ok {
+			acc.CompanyCNPJ = v
 		}
 	}
 	return acc, nil

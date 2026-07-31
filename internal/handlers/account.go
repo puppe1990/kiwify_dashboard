@@ -8,9 +8,10 @@ import (
 	"github.com/puppe1990/cais/pkg/cais"
 	"github.com/puppe1990/cais/pkg/cais/flash"
 	"github.com/puppe1990/cais/pkg/cais/meta"
+	inertia "github.com/romsar/gonertia/v3"
+
 	"github.com/puppe1990/kiwify_dashboard/internal/kiwify"
 	"github.com/puppe1990/kiwify_dashboard/internal/store"
-	inertia "github.com/romsar/gonertia/v3"
 )
 
 // AccountAPI is the Kiwify account surface used by AccountHandler (injectable for tests).
@@ -78,9 +79,12 @@ func accountForProps(a kiwify.Account) map[string]any {
 		raw = map[string]any{}
 	}
 	return map[string]any{
-		"id":    a.ID,
-		"name":  a.Name,
-		"email": a.Email,
-		"raw":   raw,
+		"id":          a.ID,
+		"name":        a.Name,
+		"email":       a.Email,
+		"companyName": a.CompanyName,
+		"directorCpf": a.DirectorCPF,
+		"companyCnpj": a.CompanyCNPJ,
+		"raw":         raw,
 	}
 }

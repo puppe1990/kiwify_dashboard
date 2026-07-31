@@ -55,26 +55,27 @@ web/src/
 
 **Kiwify API paths (v1):**
 
-| Method | Path | Notes |
-| --- | --- | --- |
-| POST | `/oauth/token` | form: `client_id`, `client_secret` → `access_token`, `expires_in` |
-| GET | `/sales` | query: `start_date`, `end_date` (max 90d), pagination |
-| GET | `/sales/{id}` | detail |
-| POST | `/sales/{id}/refund` | optional body `pixKey` |
-| GET | `/stats` | sales statistics |
-| GET | `/products`, `/products/{id}` | read-only |
-| GET | `/balance` | balances |
-| GET | `/payouts`, `/payouts/{id}` | list/detail |
-| POST | `/payouts/` | body `{ "amount": number }` |
-| GET/POST | `/affiliates`, `/affiliates/{id}` | list/get/edit (PUT/PATCH or POST per docs) |
-| GET/POST | `/webhooks` | CRUD |
-| GET/PUT/DELETE | `/webhooks/{id}` | per docs |
-| GET | `/account` (or account-details path) | account |
-| GET | `/events` participants | per docs |
+| Method         | Path                                 | Notes                                                             |
+| -------------- | ------------------------------------ | ----------------------------------------------------------------- |
+| POST           | `/oauth/token`                       | form: `client_id`, `client_secret` → `access_token`, `expires_in` |
+| GET            | `/sales`                             | query: `start_date`, `end_date` (max 90d), pagination             |
+| GET            | `/sales/{id}`                        | detail                                                            |
+| POST           | `/sales/{id}/refund`                 | optional body `pixKey`                                            |
+| GET            | `/stats`                             | sales statistics                                                  |
+| GET            | `/products`, `/products/{id}`        | read-only                                                         |
+| GET            | `/balance`                           | balances                                                          |
+| GET            | `/payouts`, `/payouts/{id}`          | list/detail                                                       |
+| POST           | `/payouts/`                          | body `{ "amount": number }`                                       |
+| GET/POST       | `/affiliates`, `/affiliates/{id}`    | list/get/edit (PUT/PATCH or POST per docs)                        |
+| GET/POST       | `/webhooks`                          | CRUD                                                              |
+| GET/PUT/DELETE | `/webhooks/{id}`                     | per docs                                                          |
+| GET            | `/account` (or account-details path) | account                                                           |
+| GET            | `/events` participants               | per docs                                                          |
 
 Verify exact affiliate edit method and account path against docs when implementing; wrap in client methods so handlers stay stable.
 
 Headers on authenticated calls:
+
 ```
 Authorization: Bearer <token>
 x-kiwify-account-id: <account_id>
@@ -85,6 +86,7 @@ x-kiwify-account-id: <account_id>
 ### Task 1: Scaffold cais app into this repo
 
 **Files:**
+
 - Create: full cais tree under project root (preserve existing `docs/`, `.gitignore`, `.git`)
 - Modify: `.gitignore` if scaffold adds entries worth merging
 
@@ -144,6 +146,7 @@ git commit -m "chore: scaffold cais app for Kiwify dashboard"
 ### Task 2: Crypto helper for secrets
 
 **Files:**
+
 - Create: `internal/crypto/secret.go`
 - Create: `internal/crypto/secret_test.go`
 
@@ -278,6 +281,7 @@ git commit -m "feat: add AES-GCM secret encrypt/decrypt helpers"
 ### Task 3: Migrations + store for settings, audit, webhook events
 
 **Files:**
+
 - Create: `internal/store/migrations/003_kiwify_ops.sql`
 - Create: `internal/store/settings.go`
 - Create: `internal/store/audit.go`
@@ -421,6 +425,7 @@ type WebhookEvent struct {
 ```
 
 Implement on `SQLiteStore` and extend `Store` interface:
+
 - `GetKiwifySettings() (KiwifySettings, error)`
 - `SaveKiwifySettings(KiwifySettings) error`
 - `UpdateOAuthToken(ciphertext string, expiresAt time.Time) error`
@@ -451,6 +456,7 @@ git commit -m "feat: add settings, audit, and webhook_events store"
 ### Task 4: Kiwify HTTP client (token + do + errors)
 
 **Files:**
+
 - Create: `internal/kiwify/errors.go`
 - Create: `internal/kiwify/client.go`
 - Create: `internal/kiwify/client_test.go`
@@ -592,12 +598,14 @@ type TokenStore interface {
 ```
 
 `Client` responsibilities:
+
 - `GetToken(ctx)`: if token valid for >60s, return it; else POST form-urlencoded `client_id`/`client_secret` to `{BaseURL}/oauth/token`, parse `access_token` + `expires_in` (string or number), `SaveToken`, return token.
 - `do(ctx, method, path, query, body, out)`: attach headers; on 401 once, clear token, refresh, retry once.
 - `GetJSON`, `PostJSON`, `PutJSON`, `DeleteJSON` wrappers.
 - `APIError{Status int, Code string, Message string, UserMessage string, Body string}` with `AsAPIError`.
 
 User messages (PT-BR examples):
+
 - 401: "Credenciais Kiwify inválidas ou token expirado. Verifique Configurações."
 - 429: "Limite da API Kiwify atingido (100/min). Aguarde um minuto e tente de novo."
 - 400: use API `message` if present, else "Requisição inválida."
@@ -625,6 +633,7 @@ git commit -m "feat: add Kiwify API client with OAuth token cache"
 ### Task 5: Wire deps — client factory, APP_SECRET, require-setup middleware
 
 **Files:**
+
 - Create: `internal/kiwify/token_store_adapter.go` (or `internal/app/kiwify_factory.go`)
 - Create: `internal/middleware/require_setup.go`
 - Create: `internal/middleware/require_setup_test.go`
@@ -652,6 +661,7 @@ func (t *DBTokenStore) SaveToken(token string, exp time.Time) error {
 ```
 
 `NewKiwifyClientFromStore(st store.Store, key []byte, httpClient *http.Client) (*kiwify.Client, error)`:
+
 - load settings, decrypt secret, build Config.
 
 - [ ] **Step 2: RequireSetup middleware**
@@ -694,6 +704,7 @@ git commit -m "feat: wire Kiwify client factory and require-setup middleware"
 ### Task 6: Setup + Settings pages
 
 **Files:**
+
 - Create: `internal/handlers/setup.go`, `setup_test.go`
 - Create: `internal/handlers/settings.go`, `settings_test.go`
 - Create: `web/src/pages/Setup.svelte`, `Settings.svelte`
@@ -713,6 +724,7 @@ Use `httpx.ParseFormOrJSON`, validate non-empty fields, `crypto.Encrypt`, `SaveK
 Optional: after save, try `GetToken` and flash success/failure without blocking save permanently (or block if OAuth fails — prefer **block save only on encrypt/db errors**; flash warning if OAuth test fails).
 
 Settings props:
+
 ```go
 inertia.Props{
   "accountId": settings.AccountID,
@@ -754,6 +766,7 @@ git commit -m "feat: setup and settings for Kiwify API credentials"
 ### Task 7: App layout (Kiwi green) + shared components
 
 **Files:**
+
 - Modify: `web/src/components/AppLayout.svelte`
 - Create: `web/src/components/StatCard.svelte`, `ConfirmModal.svelte`, `DataTable.svelte`, `FlashBanner.svelte`
 - Modify: Tailwind config if needed for green palette
@@ -784,6 +797,7 @@ git commit -m "feat: Kiwi green layout and shared UI components"
 ### Task 8: Domain client methods + Dashboard
 
 **Files:**
+
 - Create: `internal/kiwify/sales.go`, `stats.go`, `finance.go`, `products.go` (+ tests with httptest fixtures)
 - Create: `internal/handlers/dashboard.go` (replace scaffold)
 - Modify: `web/src/pages/Dashboard.svelte`
@@ -821,6 +835,7 @@ git commit -m "feat: dashboard with live sales stats, balance, and events"
 ### Task 9: Sales list, detail, refund (+ audit)
 
 **Files:**
+
 - Create/extend: `internal/kiwify/sales.go` (`RefundSale`)
 - Create: `internal/handlers/sales.go`, `sales_test.go`
 - Create: `web/src/pages/Sales.svelte`, `SaleShow.svelte`
@@ -865,6 +880,7 @@ git commit -m "feat: sales list, detail, and refund with audit log"
 ### Task 10: Products (read-only)
 
 **Files:**
+
 - Create: `internal/handlers/products.go`, `products_test.go`
 - Create: `web/src/pages/Products.svelte`, `ProductShow.svelte`
 - Extend: `internal/kiwify/products.go`
@@ -882,6 +898,7 @@ git commit -m "feat: read-only products list and detail"
 ### Task 11: Finance (balances, payouts, request payout)
 
 **Files:**
+
 - Create: `internal/kiwify/finance.go`, tests
 - Create: `internal/handlers/finance.go`, `finance_test.go`
 - Create: `web/src/pages/Finance.svelte`
@@ -900,6 +917,7 @@ git commit -m "feat: finance balances, payouts, and payout request"
 ### Task 12: Affiliates (list, detail, edit)
 
 **Files:**
+
 - Create: `internal/kiwify/affiliates.go`, tests
 - Create: `internal/handlers/affiliates.go`, tests
 - Create: `web/src/pages/Affiliates.svelte`, `AffiliateShow.svelte`
@@ -917,6 +935,7 @@ git commit -m "feat: affiliates list, detail, and edit"
 ### Task 13: Webhooks CRUD + public receiver + Events page
 
 **Files:**
+
 - Create: `internal/kiwify/webhooks.go`, tests
 - Create: `internal/handlers/webhooks.go`, `kiwify_webhook.go`, `events.go` + tests
 - Create: `web/src/pages/Webhooks.svelte`, `WebhookForm.svelte`, `Events.svelte`
@@ -953,6 +972,7 @@ git commit -m "feat: webhooks CRUD, secure receiver, and events feed"
 ### Task 14: Account, Audit pages, Account API
 
 **Files:**
+
 - Create: `internal/kiwify/account.go`, `events_api.go` (participants if needed)
 - Create: `internal/handlers/account.go`, `audit.go` + tests
 - Create: `web/src/pages/Account.svelte`, `Audit.svelte`
@@ -974,6 +994,7 @@ git commit -m "feat: account details and audit log UI"
 ### Task 15: Polish, README, final verification
 
 **Files:**
+
 - Create/Modify: `README.md`
 - Modify: flash/error mapping consistency
 - Fix: remove unused scaffold Contact demo if it confuses nav (optional; can leave linked out)
@@ -1018,21 +1039,21 @@ git commit -m "docs: README and final Kiwify dashboard polish"
 
 ## Self-review (plan vs spec)
 
-| Spec requirement | Task(s) |
-| --- | --- |
-| Live proxy architecture | 4–5, 8–14 |
-| Local login + UI setup | 1, 6 |
-| client_id + client_secret + account_id | 3, 6 (amended design) |
-| Encrypted secrets + APP_SECRET | 2, 3, 5 |
-| Token cache OAuth | 4–5 |
-| All read endpoints | 8–14 |
-| Refund, payout, affiliate edit, webhook CRUD | 9, 11–13 |
-| Confirm + audit | 9, 11–13, 14 |
-| Webhook receiver with token path | 13 |
-| Events feed | 13 |
-| Kiwi green PT-BR | 7 + pages |
-| Tests client/handlers/crypto/receiver | 2–6, 9, 13 |
-| No product create | 10 (read-only + note) |
+| Spec requirement                             | Task(s)               |
+| -------------------------------------------- | --------------------- |
+| Live proxy architecture                      | 4–5, 8–14             |
+| Local login + UI setup                       | 1, 6                  |
+| client_id + client_secret + account_id       | 3, 6 (amended design) |
+| Encrypted secrets + APP_SECRET               | 2, 3, 5               |
+| Token cache OAuth                            | 4–5                   |
+| All read endpoints                           | 8–14                  |
+| Refund, payout, affiliate edit, webhook CRUD | 9, 11–13              |
+| Confirm + audit                              | 9, 11–13, 14          |
+| Webhook receiver with token path             | 13                    |
+| Events feed                                  | 13                    |
+| Kiwi green PT-BR                             | 7 + pages             |
+| Tests client/handlers/crypto/receiver        | 2–6, 9, 13            |
+| No product create                            | 10 (read-only + note) |
 
 **Type consistency:** `KiwifySettings`, `AuditLog`, `WebhookEvent`, `kiwify.Client`, `TokenStore`, audit action strings `sales.refund`, `finance.payout`, `affiliates.edit`, `webhooks.create|update|delete`.
 
@@ -1046,7 +1067,7 @@ Plan saved to `docs/superpowers/plans/2026-07-31-kiwify-dashboard.md`.
 
 **Two execution options:**
 
-1. **Subagent-Driven (recommended)** — fresh subagent per task, review between tasks  
-2. **Inline Execution** — this session with executing-plans and checkpoints  
+1. **Subagent-Driven (recommended)** — fresh subagent per task, review between tasks
+2. **Inline Execution** — this session with executing-plans and checkpoints
 
 Which approach?
