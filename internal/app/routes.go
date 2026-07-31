@@ -18,6 +18,7 @@ func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	sales := handlers.NewSalesHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia, nil)
 	products := handlers.NewProductsHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia, nil)
 	finance := handlers.NewFinanceHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia, nil)
+	affiliates := handlers.NewAffiliatesHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia, nil)
 
 	loginLimit := middleware.NewRateLimiter(10, cfg)
 	resetLimit := middleware.NewRateLimiter(10, cfg)
@@ -48,4 +49,7 @@ func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	r.Get("/products/{id}", middleware.RequireAuthFunc("/login", cais.StringParam("id", products.Show)))
 	r.Get("/finance", middleware.RequireAuthFunc("/login", finance.Get))
 	r.Post("/finance/payouts", middleware.RequireAuthFunc("/login", finance.CreatePayout))
+	r.Get("/affiliates", middleware.RequireAuthFunc("/login", affiliates.List))
+	r.Get("/affiliates/{id}", middleware.RequireAuthFunc("/login", cais.StringParam("id", affiliates.Show)))
+	r.Post("/affiliates/{id}", middleware.RequireAuthFunc("/login", cais.StringParam("id", affiliates.Update)))
 }

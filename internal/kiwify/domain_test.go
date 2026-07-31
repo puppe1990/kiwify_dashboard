@@ -300,3 +300,101 @@ func TestCreatePayout(t *testing.T) {
 		t.Fatalf("amount filled = %v", p.Amount)
 	}
 }
+
+func TestListAffiliates(t *testing.T) {
+	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/affiliates" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		q := r.URL.Query()
+		if q.Get("page_size") != "10" || q.Get("status") != "active" {
+			t.Errorf("query = %v", q)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"pagination": map[string]any{"count": 1, "page_number": 1, "page_size": 10},
+			"data": []map[string]any{
+				{
+					"affiliate_id": "aff-1",
+					"name":         "MY Affiliate",
+					"email":        "myaffiliate@mail.com",
+					"status":       "active",
+					"commission":   4600,
+					"product":      map[string]any{"id": "p1", "name": "My Product"},
+				},
+			},
+		})
+	})
+
+	page, err := c.ListAffiliates(context.Background(), kiwify.AffiliatesQuery{
+		PageSize: "10",
+		Status:   "active",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(page.Data) != 1 {
+		t.Fatalf("len = %d", len(page.Data))
+	}
+	a := page.Data[0]
+	if a.AffiliateID != "aff-1" || a.Name != "MY Affiliate" || a.Commission != 4600 {
+		t.Fatalf("affiliate = %+v", a)
+	}
+	if a.Product.Name != "My Product" {
+		t.Fatalf("product = %+v", a.Product)
+	}
+}
+
+func TestGetAffiliate(t *testing.T) {
+	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/affiliates/aff-99" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"affiliate_id": "aff-99",
+			"name":         "João",
+			"status":       "active",
+			"commission":   1200,
+		})
+	})
+	a, err := c.GetAffiliate(context.Background(), "aff-99")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a.AffiliateID != "aff-99" || a.Name != "João" {
+		t.Fatalf("affiliate = %+v", a)
+	}
+}
+
+func TestUpdateAffiliate(t *testing.T) {
+	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPut {
+			t.Errorf("method = %s", r.Method)
+		}
+		if r.URL.Path != "/v1/affiliates/aff-1" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		var body map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		if body["status"] != "blocked" || body["commission"] != float64(5000) {
+			t.Fatalf("body = %v", body)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"affiliate_id": "aff-1",
+			"status":       "blocked",
+			"commission":   5000,
+			"name":         "MY Affiliate",
+		})
+	})
+	a, err := c.UpdateAffiliate(context.Background(), "aff-1", map[string]any{
+		"status":     "blocked",
+		"commission": 5000,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a.Status != "blocked" || a.Commission != 5000 {
+		t.Fatalf("affiliate = %+v", a)
+	}
+}
