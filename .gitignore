@@ -1,15 +1,19 @@
-.firecrawl/
-.superpowers/
-*.env
-.env
-.env.*
-!.env.example
-node_modules/
-web/static/build/
+# Scaffold defaults
 bin/
+data/
+web/static/css/styles.css
+web/static/build/
+node_modules/
 tmp/
+.air/
 *.db
 *.db-journal
 .DS_Store
 
+# Project / tooling
+.firecrawl/
+.superpowers/
 .worktrees/
+.env
+.env.*
+!.env.example
