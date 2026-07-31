@@ -19,6 +19,9 @@ func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	products := handlers.NewProductsHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia, nil)
 	finance := handlers.NewFinanceHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia, nil)
 	affiliates := handlers.NewAffiliatesHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia, nil)
+	webhooks := handlers.NewWebhooksHandler(deps.Store, deps.AppSecret, deps.Site, cfg, deps.Inertia, nil)
+	events := handlers.NewEventsHandler(deps.Store, deps.Site, cfg, deps.Inertia)
+	kiwifyWebhook := handlers.NewKiwifyWebhookHandler(deps.Store)
 
 	loginLimit := middleware.NewRateLimiter(10, cfg)
 	resetLimit := middleware.NewRateLimiter(10, cfg)
@@ -37,6 +40,10 @@ func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	r.Post("/reset-password", resetLimit.Middleware(http.HandlerFunc(auth.ResetPasswordPost)).ServeHTTP)
 	r.Post("/logout", auth.LogoutPost)
 
+	// Public Kiwify receiver — no RequireAuth / must stay outside auth group.
+	// RequireSetup already skips /webhooks/kiwify prefix.
+	r.Post("/webhooks/kiwify/{token}", cais.StringParam("token", kiwifyWebhook.Receive))
+
 	r.Get("/setup", middleware.RequireAuthFunc("/login", setup.Get))
 	r.Post("/setup", middleware.RequireAuthFunc("/login", setup.Post))
 	r.Get("/settings", middleware.RequireAuthFunc("/login", settings.Get))
@@ -52,4 +59,14 @@ func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	r.Get("/affiliates", middleware.RequireAuthFunc("/login", affiliates.List))
 	r.Get("/affiliates/{id}", middleware.RequireAuthFunc("/login", cais.StringParam("id", affiliates.Show)))
 	r.Post("/affiliates/{id}", middleware.RequireAuthFunc("/login", cais.StringParam("id", affiliates.Update)))
+
+	// Webhooks CRUD + local events feed (auth required).
+	// Register static /webhooks/new before /webhooks/{id}.
+	r.Get("/webhooks", middleware.RequireAuthFunc("/login", webhooks.List))
+	r.Get("/webhooks/new", middleware.RequireAuthFunc("/login", webhooks.New))
+	r.Post("/webhooks", middleware.RequireAuthFunc("/login", webhooks.Create))
+	r.Get("/webhooks/{id}", middleware.RequireAuthFunc("/login", cais.StringParam("id", webhooks.Show)))
+	r.Post("/webhooks/{id}", middleware.RequireAuthFunc("/login", cais.StringParam("id", webhooks.Update)))
+	r.Post("/webhooks/{id}/delete", middleware.RequireAuthFunc("/login", cais.StringParam("id", webhooks.Delete)))
+	r.Get("/events", middleware.RequireAuthFunc("/login", events.List))
 }

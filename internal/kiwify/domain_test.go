@@ -151,14 +151,14 @@ func TestSalesStats_QueryAndDecode(t *testing.T) {
 			t.Errorf("query = %v", q)
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{
-			"total_sales":                  3,
-			"total_net_amount":             25956,
-			"credit_card_approval_rate":    50,
-			"refund_rate":                  25,
-			"chargeback_rate":              0,
-			"total_boleto_generated":       2,
-			"total_boleto_paid":            1,
-			"boleto_rate":                  50,
+			"total_sales":               3,
+			"total_net_amount":          25956,
+			"credit_card_approval_rate": 50,
+			"refund_rate":               25,
+			"chargeback_rate":           0,
+			"total_boleto_generated":    2,
+			"total_boleto_paid":         1,
+			"boleto_rate":               50,
 		})
 	})
 
@@ -396,5 +396,172 @@ func TestUpdateAffiliate(t *testing.T) {
 	}
 	if a.Status != "blocked" || a.Commission != 5000 {
 		t.Fatalf("affiliate = %+v", a)
+	}
+}
+
+func TestListWebhooks(t *testing.T) {
+	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Errorf("method = %s", r.Method)
+		}
+		if r.URL.Path != "/v1/webhooks" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		if r.URL.Query().Get("page_size") != "50" {
+			t.Errorf("query = %v", r.URL.Query())
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"pagination": map[string]any{"count": 1, "page_number": 1, "page_size": 50},
+			"data": []map[string]any{
+				{
+					"id":       "wh-1",
+					"name":     "ops",
+					"url":      "https://example.com/hook",
+					"products": "all",
+					"triggers": []string{"compra_aprovada"},
+					"token":    "tok1",
+				},
+			},
+		})
+	})
+
+	page, err := c.ListWebhooks(context.Background(), kiwify.WebhooksQuery{PageSize: "50"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(page.Data) != 1 {
+		t.Fatalf("len = %d", len(page.Data))
+	}
+	wh := page.Data[0]
+	if wh.ID != "wh-1" || wh.Name != "ops" || wh.Products != "all" {
+		t.Fatalf("webhook = %+v", wh)
+	}
+	if len(wh.Triggers) != 1 || wh.Triggers[0] != "compra_aprovada" {
+		t.Fatalf("triggers = %v", wh.Triggers)
+	}
+}
+
+func TestCreateWebhook(t *testing.T) {
+	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("method = %s", r.Method)
+		}
+		if r.URL.Path != "/v1/webhooks" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		var body map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		if body["name"] != "meu webhook" {
+			t.Fatalf("name = %v", body["name"])
+		}
+		if body["url"] != "https://example.com/webhooks/kiwify/abc" {
+			t.Fatalf("url = %v", body["url"])
+		}
+		if body["products"] != "all" {
+			t.Fatalf("products = %v", body["products"])
+		}
+		triggers, ok := body["triggers"].([]any)
+		if !ok || len(triggers) != 2 {
+			t.Fatalf("triggers = %v", body["triggers"])
+		}
+		if body["token"] != "secret-token" {
+			t.Fatalf("token = %v", body["token"])
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"id":       "wh-new",
+			"name":     body["name"],
+			"url":      body["url"],
+			"products": body["products"],
+			"triggers": body["triggers"],
+			"token":    body["token"],
+		})
+	})
+
+	wh, err := c.CreateWebhook(context.Background(), kiwify.WebhookInput{
+		Name:     "meu webhook",
+		URL:      "https://example.com/webhooks/kiwify/abc",
+		Products: "all",
+		Triggers: []string{"compra_aprovada", "compra_reembolsada"},
+		Token:    "secret-token",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if wh.ID != "wh-new" || wh.Name != "meu webhook" {
+		t.Fatalf("webhook = %+v", wh)
+	}
+}
+
+func TestGetWebhook(t *testing.T) {
+	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/webhooks/wh-99" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"id": "wh-99", "name": "detail", "url": "https://x", "products": "prod-1",
+			"triggers": []string{"pix_gerado"},
+		})
+	})
+	wh, err := c.GetWebhook(context.Background(), "wh-99")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if wh.ID != "wh-99" || wh.Products != "prod-1" {
+		t.Fatalf("webhook = %+v", wh)
+	}
+}
+
+func TestUpdateWebhook(t *testing.T) {
+	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPut {
+			t.Errorf("method = %s", r.Method)
+		}
+		if r.URL.Path != "/v1/webhooks/wh-1" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		var body map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		if body["name"] != "updated" {
+			t.Fatalf("body = %v", body)
+		}
+		// optional token omitted → not present
+		if _, ok := body["token"]; ok {
+			t.Fatalf("token should be omitted when empty, body=%v", body)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"id": "wh-1", "name": "updated", "url": body["url"], "products": body["products"],
+			"triggers": body["triggers"],
+		})
+	})
+	wh, err := c.UpdateWebhook(context.Background(), "wh-1", kiwify.WebhookInput{
+		Name:     "updated",
+		URL:      "https://example.com/h",
+		Products: "all",
+		Triggers: []string{"chargeback"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if wh.Name != "updated" {
+		t.Fatalf("webhook = %+v", wh)
+	}
+}
+
+func TestDeleteWebhook(t *testing.T) {
+	c := testDomainClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			t.Errorf("method = %s", r.Method)
+		}
+		if r.URL.Path != "/v1/webhooks/wh-del" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
+	if err := c.DeleteWebhook(context.Background(), "wh-del"); err != nil {
+		t.Fatal(err)
 	}
 }
