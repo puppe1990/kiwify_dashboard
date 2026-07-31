@@ -73,6 +73,12 @@ func bootstrapWithConfig(cfg cais.Config) (*app.App, error) {
 		return nil, fmt.Errorf("store: %w", err)
 	}
 
+	appSecret, err := app.ResolveAppSecret(cfg.Env, os.Getenv("APP_SECRET"))
+	if err != nil {
+		_ = s.Close()
+		return nil, err
+	}
+
 	staticDir, err := cais.ResolveWebDir("static", cfg.StaticDir)
 	if err != nil {
 		_ = s.Close()
@@ -88,6 +94,7 @@ func bootstrapWithConfig(cfg cais.Config) (*app.App, error) {
 	return app.New(cfg, app.Deps{
 		Renderer:  renderer,
 		Store:     s,
+		AppSecret: appSecret,
 		StaticDir: staticDir,
 		Site:      meta.SiteFrom("kiwify_dashboard", cfg.AppURL),
 		Catalog:   catalog,

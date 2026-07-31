@@ -14,17 +14,41 @@ import (
 	"github.com/puppe1990/cais/pkg/cais/meta"
 	"github.com/puppe1990/cais/pkg/cais/middleware"
 	"github.com/puppe1990/cais/pkg/cais/netutil"
+	"github.com/puppe1990/kiwify_dashboard/internal/crypto"
+	appmw "github.com/puppe1990/kiwify_dashboard/internal/middleware"
 	"github.com/puppe1990/kiwify_dashboard/internal/store"
 	inertia "github.com/romsar/gonertia/v3"
 )
 
+// DevAppSecretDefault is used only when ENV=development and APP_SECRET is unset.
+// Never use this value for real credentials or production data.
+const DevAppSecretDefault = "kiwify-ops-dev-app-secret-not-for-production"
+
 type Deps struct {
-	Renderer  *cais.Renderer
-	Store     store.Store
+	Renderer *cais.Renderer
+	Store    store.Store
+	// AppSecret is the 32-byte AES key derived via crypto.DeriveKey(APP_SECRET).
+	// Use it for encrypting Kiwify client secrets and OAuth tokens — never the raw env string.
+	AppSecret []byte
 	StaticDir string
 	Site      meta.Site
 	Catalog   *i18n.Catalog
 	Inertia   *inertia.Inertia
+}
+
+// ResolveAppSecret derives the encryption key from the APP_SECRET env value.
+// If secret is empty and env is "development", logs a warning and uses DevAppSecretDefault.
+// In any other environment an empty secret is a fatal configuration error.
+func ResolveAppSecret(env, secret string) ([]byte, error) {
+	if secret == "" {
+		if env == "development" {
+			log.Println("warning: APP_SECRET is empty; using insecure development default. Set APP_SECRET for real data.")
+			secret = DevAppSecretDefault
+		} else {
+			return nil, fmt.Errorf("APP_SECRET is required when ENV=%s (set a long random secret)", env)
+		}
+	}
+	return crypto.DeriveKey(secret), nil
 }
 
 type App struct {
@@ -75,6 +99,8 @@ func New(cfg cais.Config, deps Deps) (*App, error) {
 	}
 	r.Use(middleware.Recover)
 	r.Use(middleware.SecurityHeaders(cfg))
+	// Redirect to /setup until Kiwify credentials are configured (skips auth/webhook/static).
+	r.Use(appmw.RequireSetup(deps.Store))
 	r.StaticForEnv("/static", deps.StaticDir, cfg)
 
 	registerRoutes(r, deps, cfg)
