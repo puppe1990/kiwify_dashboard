@@ -34,7 +34,7 @@ func NewAuthHandler(renderer *cais.Renderer, s store.Store, site meta.Site, sess
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if _, ok := session.UserID(r); ok {
-		h.inertia.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+		h.inertia.Redirect(w, r, h.postAuthPath(), http.StatusSeeOther)
 		return
 	}
 	_ = h.inertia.Render(w, r, "Login", inertia.Props{
@@ -64,7 +64,7 @@ func (h *AuthHandler) LoginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := inertia.SetFlash(r.Context(), inertia.Flash{"notice": h.catalog.T("auth.welcome")})
-	h.inertia.Redirect(w, r.WithContext(ctx), "/dashboard", http.StatusSeeOther)
+	h.inertia.Redirect(w, r.WithContext(ctx), h.postAuthPath(), http.StatusSeeOther)
 }
 
 func (h *AuthHandler) LogoutPost(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +74,7 @@ func (h *AuthHandler) LogoutPost(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	if _, ok := session.UserID(r); ok {
-		h.inertia.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+		h.inertia.Redirect(w, r, h.postAuthPath(), http.StatusSeeOther)
 		return
 	}
 	_ = h.inertia.Render(w, r, "Signup", inertia.Props{"site": meta.ForRequest(h.site, r)})
@@ -133,12 +133,12 @@ func (h *AuthHandler) SignUpPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := inertia.SetFlash(r.Context(), inertia.Flash{"notice": h.catalog.T("auth.welcome")})
-	h.inertia.Redirect(w, r.WithContext(ctx), "/dashboard", http.StatusSeeOther)
+	h.inertia.Redirect(w, r.WithContext(ctx), h.postAuthPath(), http.StatusSeeOther)
 }
 
 func (h *AuthHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	if _, ok := session.UserID(r); ok {
-		h.inertia.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+		h.inertia.Redirect(w, r, h.postAuthPath(), http.StatusSeeOther)
 		return
 	}
 	_ = h.inertia.Render(w, r, "ForgotPassword", inertia.Props{"site": meta.ForRequest(h.site, r)})
@@ -180,7 +180,7 @@ func (h *AuthHandler) ForgotPasswordPost(w http.ResponseWriter, r *http.Request)
 
 func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	if _, ok := session.UserID(r); ok {
-		h.inertia.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+		h.inertia.Redirect(w, r, h.postAuthPath(), http.StatusSeeOther)
 		return
 	}
 
@@ -267,4 +267,13 @@ func (h *AuthHandler) resetNotifier() passwordreset.Notifier {
 		return h.resetNotify
 	}
 	return passwordreset.NotifierFromConfig(h.cfg, h.site.AppName)
+}
+
+// postAuthPath returns /setup when Kiwify credentials are missing, else /dashboard.
+func (h *AuthHandler) postAuthPath() string {
+	ok, err := h.store.Configured()
+	if err != nil || !ok {
+		return "/setup"
+	}
+	return "/dashboard"
 }
