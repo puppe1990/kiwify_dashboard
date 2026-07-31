@@ -8,8 +8,20 @@
 
   $: errorMessages = Object.values(errors || {}).filter(Boolean)
 
+  const primaryKeys = new Set([
+    'id',
+    'name',
+    'email',
+    'company_name',
+    'companyName',
+    'director_cpf',
+    'directorCpf',
+    'company_cnpj',
+    'companyCnpj',
+  ])
+
   $: rawEntries = account?.raw
-    ? Object.entries(account.raw).filter(([k]) => !['id', 'name', 'email'].includes(k))
+    ? Object.entries(account.raw).filter(([k]) => !primaryKeys.has(k))
     : []
 
   function formatValue(v) {
@@ -32,9 +44,7 @@
 <AppLayout {site} {flash}>
   <div class="mb-6">
     <h1 class="text-2xl font-semibold text-green-950">Conta</h1>
-    <p class="mt-1 text-sm text-green-800/70">
-      Detalhes da conta Kiwify via API Pública
-    </p>
+    <p class="mt-1 text-sm text-green-800/70">Detalhes da conta Kiwify via API Pública</p>
   </div>
 
   {#if errorMessages.length > 0}
@@ -57,26 +67,40 @@
     >
       <dl class="divide-y divide-green-50">
         <div class="grid gap-1 px-5 py-4 sm:grid-cols-3 sm:gap-4">
-          <dt class="text-sm font-medium text-green-900">ID</dt>
-          <dd class="text-sm text-green-950 sm:col-span-2 font-mono" data-testid="account-id">
+          <dt class="text-sm font-medium text-green-900">ID da conta</dt>
+          <dd class="font-mono text-sm text-green-950 sm:col-span-2" data-testid="account-id">
             {account.id || '—'}
           </dd>
         </div>
         <div class="grid gap-1 px-5 py-4 sm:grid-cols-3 sm:gap-4">
-          <dt class="text-sm font-medium text-green-900">Nome</dt>
+          <dt class="text-sm font-medium text-green-900">Empresa</dt>
           <dd class="text-sm text-green-950 sm:col-span-2" data-testid="account-name">
-            {account.name || '—'}
+            {account.companyName || account.name || '—'}
           </dd>
         </div>
-        <div class="grid gap-1 px-5 py-4 sm:grid-cols-3 sm:gap-4">
-          <dt class="text-sm font-medium text-green-900">E-mail</dt>
-          <dd class="text-sm text-green-950 sm:col-span-2" data-testid="account-email">
-            {account.email || '—'}
-          </dd>
-        </div>
+        {#if account.companyCnpj}
+          <div class="grid gap-1 px-5 py-4 sm:grid-cols-3 sm:gap-4">
+            <dt class="text-sm font-medium text-green-900">CNPJ</dt>
+            <dd class="font-mono text-sm text-green-950 sm:col-span-2">{account.companyCnpj}</dd>
+          </div>
+        {/if}
+        {#if account.directorCpf}
+          <div class="grid gap-1 px-5 py-4 sm:grid-cols-3 sm:gap-4">
+            <dt class="text-sm font-medium text-green-900">CPF do responsável</dt>
+            <dd class="font-mono text-sm text-green-950 sm:col-span-2">{account.directorCpf}</dd>
+          </div>
+        {/if}
+        {#if account.email}
+          <div class="grid gap-1 px-5 py-4 sm:grid-cols-3 sm:gap-4">
+            <dt class="text-sm font-medium text-green-900">E-mail</dt>
+            <dd class="text-sm text-green-950 sm:col-span-2" data-testid="account-email">
+              {account.email}
+            </dd>
+          </div>
+        {/if}
         {#each rawEntries as [key, value]}
           <div class="grid gap-1 px-5 py-4 sm:grid-cols-3 sm:gap-4">
-            <dt class="text-sm font-medium text-green-900 break-all">{key}</dt>
+            <dt class="break-all text-sm font-medium text-green-900">{key}</dt>
             <dd class="text-sm text-green-950 sm:col-span-2">
               {#if typeof value === 'object' && value !== null}
                 <pre

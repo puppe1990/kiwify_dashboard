@@ -78,9 +78,12 @@ func accountForProps(a kiwify.Account) map[string]any {
 		raw = map[string]any{}
 	}
 	return map[string]any{
-		"id":    a.ID,
-		"name":  a.Name,
-		"email": a.Email,
-		"raw":   raw,
+		"id":          a.ID,
+		"name":        a.Name,
+		"email":       a.Email,
+		"companyName": a.CompanyName,
+		"directorCpf": a.DirectorCPF,
+		"companyCnpj": a.CompanyCNPJ,
+		"raw":         raw,
 	}
 }

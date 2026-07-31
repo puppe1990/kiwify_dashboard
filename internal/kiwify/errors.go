@@ -44,6 +44,8 @@ func userMessageForStatus(status int, apiMessage string) string {
 			return apiMessage
 		}
 		return "Requisição inválida."
+	case status == 404:
+		return "Recurso não encontrado na API Kiwify (404). Verifique se a conta e as permissões da API Key estão corretas."
 	case status >= 500 && status <= 599:
 		return "Erro no servidor da Kiwify. Tente mais tarde."
 	default:

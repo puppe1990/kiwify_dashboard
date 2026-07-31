@@ -340,7 +340,7 @@ func (h *WebhooksHandler) Update(w http.ResponseWriter, r *http.Request, id stri
 	h.inertia.Redirect(w, r.WithContext(ctx), "/webhooks/"+id, http.StatusSeeOther)
 }
 
-// Delete handles POST /webhooks/{id}/delete. Audits webhooks.delete.
+// Delete handles DELETE /webhooks/{id}. Audits webhooks.delete.
 func (h *WebhooksHandler) Delete(w http.ResponseWriter, r *http.Request, id string) {
 	userID, _ := session.UserID(r)
 	ip := middleware.ClientIP(r, h.cfg)

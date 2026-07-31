@@ -246,7 +246,7 @@ func TestWebhooksDelete_SuccessWritesAudit(t *testing.T) {
 	fake := &fakeWebhooksAPI{}
 	h, s := newWebhooksHandler(t, fake)
 
-	req := inertiaRequest(http.MethodPost, "/webhooks/wh-del/delete", nil)
+	req := inertiaRequest(http.MethodDelete, "/webhooks/wh-del", nil)
 	req = session.WithUserID(req, 9)
 	rr := httptest.NewRecorder()
 	h.Delete(rr, req, "wh-del")
@@ -277,7 +277,7 @@ func TestWebhooksDelete_FailureStillAudits(t *testing.T) {
 	}
 	h, s := newWebhooksHandler(t, fake)
 
-	req := inertiaRequest(http.MethodPost, "/webhooks/wh-x/delete", nil)
+	req := inertiaRequest(http.MethodDelete, "/webhooks/wh-x", nil)
 	req = session.WithUserID(req, 1)
 	rr := httptest.NewRecorder()
 	h.Delete(rr, req, "wh-x")
