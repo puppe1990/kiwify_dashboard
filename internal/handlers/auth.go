@@ -38,9 +38,13 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		h.inertia.Redirect(w, r, h.postAuthPath(), http.StatusSeeOther)
 		return
 	}
-	_ = h.inertia.Render(w, r, "Login", inertia.Props{
+	props := inertia.Props{
 		"site": meta.ForRequest(h.site, r),
-	})
+	}
+	if f := flashProps(r); f != nil {
+		props["flash"] = f
+	}
+	_ = h.inertia.Render(w, r, "Login", props)
 }
 
 func (h *AuthHandler) LoginPost(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +60,9 @@ func (h *AuthHandler) LoginPost(w http.ResponseWriter, r *http.Request) {
 		ctx := inertia.SetValidationErrors(r.Context(), inertia.ValidationErrors{
 			"email": h.catalog.T("auth.invalid_credentials"),
 		})
-		_ = h.inertia.Render(w, r.WithContext(ctx), "Login", inertia.Props{})
+		_ = h.inertia.Render(w, r.WithContext(ctx), "Login", inertia.Props{
+			"site": meta.ForRequest(h.site, r),
+		})
 		return
 	}
 
