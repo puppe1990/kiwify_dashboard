@@ -32,17 +32,32 @@ cais server       # go run ./cmd/server
 cais doctor       # verify toolchain
 ```
 
+### CI e pre-commit
+
+O scaffold do cais já inclui:
+
+- **GitHub Actions** — `.github/workflows/ci.yml` (testes Go, golangci-lint, Prettier, `npm test`) em push/PR para `main` e `master`
+- **pre-commit** — `.pre-commit-config.yaml` (fmt, lint, tests, prettier)
+
+Ativar o hook local (uma vez por clone):
+
+```bash
+# requer https://pre-commit.com (ex.: brew install pre-commit)
+pre-commit install
+pre-commit run --all-files   # opcional
+```
+
 ## Environment
 
 Copy `.env.example` → `.env` and adjust:
 
-| Variable | Notes |
-| --- | --- |
+| Variable     | Notes                                                                                                                                                                                     |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `APP_SECRET` | **Required in production.** Symmetric material for encrypting Kiwify client secrets and OAuth tokens at rest. In development, an insecure default is used if unset (logged as a warning). |
-| `ENV` | `development` / `production` |
-| `PORT` | Default `:8080` |
-| `APP_URL` | Public base URL (used for webhook receive URL display) |
-| `DB_PATH` | Default `./data/app.db` |
+| `ENV`        | `development` / `production`                                                                                                                                                              |
+| `PORT`       | Default `:8080`                                                                                                                                                                           |
+| `APP_URL`    | Public base URL (used for webhook receive URL display)                                                                                                                                    |
+| `DB_PATH`    | Default `./data/app.db`                                                                                                                                                                   |
 
 Generate a strong secret for real use, e.g.:
 
@@ -74,7 +89,7 @@ Enter them at `/setup` (first time) or later under **Configurações** (`/settin
 ## Webhooks
 
 1. Complete setup so a **receive token** is generated.
-2. Copy the public URL from Settings, e.g.  
+2. Copy the public URL from Settings, e.g.
    `https://your-host/webhooks/kiwify/<token>`
 3. Register that URL as a webhook in Kiwify (or via **Webhooks** in this app).
 
@@ -96,18 +111,18 @@ Kiwify Public API: **100 requests/minute**. This dashboard does not add a second
 
 ## Features (MVP)
 
-| Area | Behavior |
-| --- | --- |
-| Dashboard | Stats (30d), balance, recent sales, recent webhook events |
-| Vendas | List (max 90-day window), detail, refund (confirm + audit) |
-| Produtos | Read-only list/detail — **no create/edit via API** |
-| Financeiro | Balances, payouts list, request payout (confirm + audit) |
-| Afiliados | List/detail, edit (confirm + audit) |
-| Webhooks | CRUD against Public API |
-| Eventos | Local feed of received webhooks |
-| Auditoria | Sensitive action history (success and failure) |
-| Conta | Live `GET /account` details |
-| Configurações | Update credentials + webhook receive URL |
+| Area          | Behavior                                                   |
+| ------------- | ---------------------------------------------------------- |
+| Dashboard     | Stats (30d), balance, recent sales, recent webhook events  |
+| Vendas        | List (max 90-day window), detail, refund (confirm + audit) |
+| Produtos      | Read-only list/detail — **no create/edit via API**         |
+| Financeiro    | Balances, payouts list, request payout (confirm + audit)   |
+| Afiliados     | List/detail, edit (confirm + audit)                        |
+| Webhooks      | CRUD against Public API                                    |
+| Eventos       | Local feed of received webhooks                            |
+| Auditoria     | Sensitive action history (success and failure)             |
+| Conta         | Live `GET /account` details                                |
+| Configurações | Update credentials + webhook receive URL                   |
 
 ## Project layout
 

@@ -1,8 +1,8 @@
 # Kiwify Ops Dashboard — Design Spec
 
-**Date:** 2026-07-31  
-**Status:** Approved for implementation planning  
-**Stack:** [cais](https://github.com/puppe1990/cais) (Go + Inertia.js + Svelte 5 + Tailwind + SQLite)  
+**Date:** 2026-07-31
+**Status:** Approved for implementation planning
+**Stack:** [cais](https://github.com/puppe1990/cais) (Go + Inertia.js + Svelte 5 + Tailwind + SQLite)
 **API:** [Kiwify Public API](https://docs.kiwify.com.br/api-reference/general) (`https://public-api.kiwify.com`)
 
 ## 1. Goal
@@ -17,11 +17,11 @@ This is **not** multi-account/agency and **not** a product CMS (the API has no c
 
 ## 2. Users and auth
 
-| Layer | Behavior |
-| --- | --- |
-| App login | Local cais session (email/password). Required for all UI and mutations. |
+| Layer              | Behavior                                                                                                                                                               |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| App login          | Local cais session (email/password). Required for all UI and mutations.                                                                                                |
 | Kiwify credentials | Configured in UI after first login (`/setup` / `/settings`): `client_id` + `client_secret` + `account_id` (OAuth `/oauth/token` requires client_id and client_secret). |
-| API calls | Server-side only. OAuth bearer token cached and reused until near expiry (~96h). |
+| API calls          | Server-side only. OAuth bearer token cached and reused until near expiry (~96h).                                                                                       |
 
 Flow: `login` → if settings missing → `/setup` → dashboard.
 
@@ -54,25 +54,25 @@ Kiwify → POST /webhooks/kiwify (public) → webhook_events
 
 ## 5. Screens and routes
 
-| Route | Purpose |
-| --- | --- |
-| `GET /login`, auth routes | cais local auth |
-| `GET/POST /setup` | First-time API key + account_id |
-| `GET /` | Dashboard: sales stats, available balance, recent sales, recent local webhook events |
-| `GET /sales` | List sales (date range max 90 days per API) |
-| `GET /sales/{id}` | Sale detail |
-| `POST /sales/{id}/refund` | Refund (confirm + audit) |
-| `GET /products`, `GET /products/{id}` | Read-only product list/detail |
-| `GET /finance` | Balances + payouts list |
-| `POST /finance/payouts` | Request payout (confirm + audit) |
-| `GET /affiliates`, `GET /affiliates/{id}` | List/detail |
-| `POST /affiliates/{id}` | Edit affiliate (confirm + audit) |
-| `GET /webhooks`, CRUD routes | Manage webhooks via API |
-| `GET /events` | Local feed from `webhook_events` |
-| `GET /audit` | Sensitive action history |
-| `GET /account` | Account details from API |
-| `GET/POST /settings` | View/update Kiwify credentials |
-| `POST /webhooks/kiwify/{receive_token}` | Public receiver (no session; token gate) |
+| Route                                     | Purpose                                                                              |
+| ----------------------------------------- | ------------------------------------------------------------------------------------ |
+| `GET /login`, auth routes                 | cais local auth                                                                      |
+| `GET/POST /setup`                         | First-time API key + account_id                                                      |
+| `GET /`                                   | Dashboard: sales stats, available balance, recent sales, recent local webhook events |
+| `GET /sales`                              | List sales (date range max 90 days per API)                                          |
+| `GET /sales/{id}`                         | Sale detail                                                                          |
+| `POST /sales/{id}/refund`                 | Refund (confirm + audit)                                                             |
+| `GET /products`, `GET /products/{id}`     | Read-only product list/detail                                                        |
+| `GET /finance`                            | Balances + payouts list                                                              |
+| `POST /finance/payouts`                   | Request payout (confirm + audit)                                                     |
+| `GET /affiliates`, `GET /affiliates/{id}` | List/detail                                                                          |
+| `POST /affiliates/{id}`                   | Edit affiliate (confirm + audit)                                                     |
+| `GET /webhooks`, CRUD routes              | Manage webhooks via API                                                              |
+| `GET /events`                             | Local feed from `webhook_events`                                                     |
+| `GET /audit`                              | Sensitive action history                                                             |
+| `GET /account`                            | Account details from API                                                             |
+| `GET/POST /settings`                      | View/update Kiwify credentials                                                       |
+| `POST /webhooks/kiwify/{receive_token}`   | Public receiver (no session; token gate)                                             |
 
 All app routes except login and webhook receiver use `RequireAuth`.
 
@@ -164,12 +164,12 @@ Scaffold with `cais new` (or fill current empty project directory), then generat
 
 ## 11. Testing strategy
 
-| Area | What |
-| --- | --- |
+| Area              | What                                                                                    |
+| ----------------- | --------------------------------------------------------------------------------------- |
 | `internal/kiwify` | httptest: token reuse/refresh, required headers, error decoding, representative methods |
-| Action handlers | Auth required; audit row on success/failure; no secret leakage |
-| Webhook receiver | Valid JSON stored; bad body → 4xx; 200 on success |
-| Crypto/settings | Round-trip encrypt; Inertia props never include raw `client_secret` |
+| Action handlers   | Auth required; audit row on success/failure; no secret leakage                          |
+| Webhook receiver  | Valid JSON stored; bad body → 4xx; 200 on success                                       |
+| Crypto/settings   | Round-trip encrypt; Inertia props never include raw `client_secret`                     |
 
 Prefer table-driven Go tests; follow cais patterns for handler tests.
 
@@ -193,11 +193,11 @@ Prefer table-driven Go tests; follow cais patterns for handler tests.
 
 ## 14. Open points resolved in brainstorm
 
-| Topic | Decision |
-| --- | --- |
-| Scope | Personal ops (A) + actions (C), all API modules |
-| Auth | UI setup + local login |
-| Sensitive actions | Confirm modal + audit log |
-| Webhooks | CRUD + receive into SQLite |
-| Visual | Kiwi green |
-| Data strategy | Live proxy (#1) |
+| Topic             | Decision                                        |
+| ----------------- | ----------------------------------------------- |
+| Scope             | Personal ops (A) + actions (C), all API modules |
+| Auth              | UI setup + local login                          |
+| Sensitive actions | Confirm modal + audit log                       |
+| Webhooks          | CRUD + receive into SQLite                      |
+| Visual            | Kiwi green                                      |
+| Data strategy     | Live proxy (#1)                                 |
