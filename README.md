@@ -4,6 +4,22 @@ Personal operations dashboard for [Kiwify](https://kiwify.com.br): a **live prox
 
 This is a single-operator tool (not multi-account / agency). Product create/update is **not** available via the Public API — the products pages are read-only.
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/04-dashboard.png" alt="Kiwify Ops — Dashboard" width="900" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/05-sales.png" alt="Kiwify Ops — Vendas" width="440" />
+  <img src="docs/screenshots/07-webhooks.png" alt="Kiwify Ops — Webhooks" width="440" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/03-setup.png" alt="Kiwify Ops — Setup de API" width="440" />
+  <img src="docs/screenshots/01-login.png" alt="Kiwify Ops — Login" width="440" />
+</p>
+
 ## Stack
 
 - **Go** (stdlib `net/http`) via [cais](https://github.com/puppe1990/cais)
@@ -121,7 +137,7 @@ Kiwify Public API: **100 requests/minute**. This dashboard does not add a second
 | Webhooks      | CRUD against Public API                                    |
 | Eventos       | Local feed of received webhooks                            |
 | Auditoria     | Sensitive action history (success and failure)             |
-| Conta         | Live `GET /account` details                                |
+| Conta         | Live `GET /account-details`                                |
 | Configurações | Update credentials + webhook receive URL                   |
 
 ## Project layout
@@ -136,7 +152,9 @@ internal/
   middleware/        RequireSetup
   store/             SQLite: settings, audit, webhook_events
 web/src/pages/       Svelte 5 pages
+docs/screenshots/    README screenshots
 docs/superpowers/    Design spec + implementation plan
+scripts/             Helpers (e.g. take-screenshots.mjs)
 ```
 
 ## Worktree / monorepo note
